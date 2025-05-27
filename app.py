@@ -111,15 +111,23 @@ def index():
             <div class="container">
                 <h1>Harry Potter's Invisibility Cloak</h1>
                 <div class="video-container">
-                    <img src="/video_feed">
-                </div>
-                <div class="instructions">
-                    <h2>Instructions:</h2>
-                    <p>1. Stand away from the camera for 5 seconds while it captures the background</p>
-                    <p>2. Hold a red cloth in front of the camera</p>
-                    <p>3. Watch as the red cloth becomes invisible, revealing the background!</p>
+                    <video id="webcam" autoplay playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
                 </div>
             </div>
+            <script>
+                async function setupWebcam() {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        const video = document.getElementById('webcam');
+                        video.srcObject = stream;
+                    } catch (error) {
+                        console.error('Error accessing webcam:', error);
+                        alert('Please allow camera access to use this application');
+                    }
+                }
+                setupWebcam();
+            </script>
         </body>
     </html>
     """
@@ -132,6 +140,14 @@ def video_feed():
 @app.route('/health')
 def health_check():
     return 'OK', 200
+
+@app.route('/process_frame', methods=['POST'])
+def process_frame():
+    # Get frame data from the request
+    frame_data = request.get_json()
+    # Process the frame using your invisibility cloak logic
+    # Return the processed frame
+    return jsonify({'processed_frame': processed_frame_data})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
