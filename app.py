@@ -105,29 +105,27 @@ def index():
                     border-radius: 10px;
                     margin-top: 20px;
                 }
+                .step {
+                    margin: 10px 0;
+                    padding: 10px;
+                    background-color: #444;
+                    border-radius: 5px;
+                }
             </style>
         </head>
         <body>
             <div class="container">
                 <h1>Harry Potter's Invisibility Cloak</h1>
                 <div class="video-container">
-                    <video id="webcam" autoplay playsinline></video>
-                    <canvas id="canvas" style="display: none;"></canvas>
+                    <img src="/video_feed">
+                </div>
+                <div class="instructions">
+                    <h2>How to Use:</h2>
+                    <div class="step">1. Stand away from the camera for 5 seconds while it captures the background</div>
+                    <div class="step">2. Hold a red cloth in front of the camera</div>
+                    <div class="step">3. Watch as the red cloth becomes invisible, revealing the background!</div>
                 </div>
             </div>
-            <script>
-                async function setupWebcam() {
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                        const video = document.getElementById('webcam');
-                        video.srcObject = stream;
-                    } catch (error) {
-                        console.error('Error accessing webcam:', error);
-                        alert('Please allow camera access to use this application');
-                    }
-                }
-                setupWebcam();
-            </script>
         </body>
     </html>
     """
