@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: invisibility-cloak
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:8080 app:app
+    healthCheckPath: /health
+    autoDeploy: true
