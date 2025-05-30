@@ -1,58 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Invisibility Cloak Comparison</title>
+    <title>Invisibility Cloak</title>
     <style>
         body {
-            background-color: #121212;
-            color: #f0f0f0;
             font-family: Arial, sans-serif;
             text-align: center;
+            background-color: #111;
+            color: #fff;
         }
-
-        h1 {
-            color: #FFD700;
-            margin-bottom: 10px;
+        #video, #result {
+            width: 45%;
+            margin: 10px;
+            border-radius: 10px;
         }
-
-        #instructions {
-            margin-bottom: 20px;
-            font-size: 18px;
+        canvas {
+            display: none;
         }
-
         .container {
             display: flex;
             justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-top: 20px;
+            flex-wrap: wrap;
         }
-
-        video, img {
-            width: 640px;
-            height: 480px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px #444;
-        }
-
-        canvas {
-            display: none;
+        h1 {
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>🧙‍♂️ Invisibility Cloak Effect (Live Comparison)</h1>
-    <div id="instructions">
-        1. Stand away from the camera for 5 seconds while it captures the background<br>
-        2. Then, bring a red cloth in front of the camera<br>
-        3. Watch the cloak effect happen live!
-    </div>
-
+    <h1>🧙‍♂️ Invisibility Cloak</h1>
+    <p id="instructions">Please stand back. Capturing background in 5 seconds...</p>
     <div class="container">
-        <video id="video" autoplay muted></video>
-        <img id="result" />
+        <video id="video" autoplay></video>
+        <img id="result" alt="Processed Output" />
     </div>
-
     <canvas id="canvas" width="640" height="480"></canvas>
 
     <script>
@@ -62,25 +43,18 @@
         const result = document.getElementById('result');
 
         let capturing = false;
+        let backgroundImage = null;
 
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
                 video.srcObject = stream;
 
-                // Begin background capture after short delay
+                // Capture background after 5 seconds
                 setTimeout(() => {
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const imageData = canvas.toDataURL('image/jpeg');
-
-                    fetch('/process_frame', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ image: imageData })
-                    }).then(() => {
-                        capturing = true;
-                        document.getElementById('instructions').innerHTML = 
-                            "✅ Background captured. Now show the red cloth!";
-                    });
+                    backgroundImage = canvas.toDataURL('image/jpeg');
+                    capturing = true;
+                    document.getElementById('instructions').innerText = "✅ Background captured. Now show the red cloth!";
                 }, 5000);
             })
             .catch(err => {
@@ -88,7 +62,7 @@
             });
 
         setInterval(() => {
-            if (!capturing) return;
+            if (!capturing || !backgroundImage) return;
 
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const imageData = canvas.toDataURL('image/jpeg');
@@ -96,7 +70,10 @@
             fetch('/process_frame', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: imageData })
+                body: JSON.stringify({
+                    image: imageData,
+                    background: backgroundImage
+                })
             })
             .then(res => res.json())
             .then(data => {
