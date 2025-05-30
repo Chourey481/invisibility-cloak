@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Invisibility Cloak Comparison</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+
+        #instructions {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        video, img {
+            width: 640px;
+            height: 480px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #444;
+        }
+
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧙‍♂️ Invisibility Cloak Effect (Live Comparison)</h1>
+    <div id="instructions">
+        1. Stand away from the camera for 5 seconds while it captures the background<br>
+        2. Then, bring a red cloth in front of the camera<br>
+        3. Watch the cloak effect happen live!
+    </div>
+
+    <div class="container">
+        <video id="video" autoplay muted></video>
+        <img id="result" />
+    </div>
+
+    <canvas id="canvas" width="640" height="480"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const result = document.getElementById('result');
+
+        let capturing = false;
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+
+                // Begin background capture after short delay
+                setTimeout(() => {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const imageData = canvas.toDataURL('image/jpeg');
+
+                    fetch('/process_frame', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: imageData })
+                    }).then(() => {
+                        capturing = true;
+                        document.getElementById('instructions').innerHTML = 
+                            "✅ Background captured. Now show the red cloth!";
+                    });
+                }, 5000);
+            })
+            .catch(err => {
+                console.error("Error accessing webcam:", err);
+            });
+
+        setInterval(() => {
+            if (!capturing) return;
+
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg');
+
+            fetch('/process_frame', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.processed_image) {
+                    result.src = data.processed_image;
+                }
+            });
+        }, 200);
+    </script>
+</body>
+</html>
